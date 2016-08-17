@@ -1,0 +1,68 @@
+#################
+Download and process Sentinel 2
+#################
+
+1. Download 4,3,2 bounds for natural picture
+https://remotepixel.ca/projects/satellitesearch.html
+
+2. Convert jp2 to geotif
+gdal_translate -of GTiff B02.jp2 B02.tif
+
+3. Combine bounds with Landsat util. BQA equivalent is needed.
+landsat process path/nameOfFolder  --bands 432
+
+
+
+#################
+Crop elevation data
+#################
+
+
+1. DEM to geotif
+gdalwarp -te 432000 6790000 492000 6850000 jotunheimen.vrt jotunheimen.tif
+
+2. Get info
+gdalinfo -mm jotunheimen.tif
+
+///
+Output:
+Driver: GTiff/GeoTIFF
+Files: jotunheimen.tif
+Size is 6000, 6000
+Coordinate System is:
+PROJCS["WGS 84 / UTM zone 32N",
+    GEOGCS["WGS 84",
+        DATUM["WGS_1984",
+            SPHEROID["WGS 84",6378137,298.257223563,
+                AUTHORITY["EPSG","7030"]],
+            AUTHORITY["EPSG","6326"]],
+        PRIMEM["Greenwich",0],
+        UNIT["degree",0.0174532925199433],
+        AUTHORITY["EPSG","4326"]],
+    PROJECTION["Transverse_Mercator"],
+    PARAMETER["latitude_of_origin",0],
+    PARAMETER["central_meridian",9],
+    PARAMETER["scale_factor",0.9996],
+    PARAMETER["false_easting",500000],
+    PARAMETER["false_northing",0],
+    UNIT["metre",1,
+        AUTHORITY["EPSG","9001"]],
+    AUTHORITY["EPSG","32632"]]
+Origin = (432000.000000000000000,6850000.000000000000000)
+Pixel Size = (10.000000000000000,-10.000000000000000)
+Metadata:
+  AREA_OR_POINT=Area
+Image Structure Metadata:
+  INTERLEAVE=BAND
+Corner Coordinates:
+Upper Left  (  432000.000, 6850000.000) (  7d42'39.90"E, 61d46'36.81"N)
+Lower Left  (  432000.000, 6790000.000) (  7d43'59.45"E, 61d14'18.21"N)
+Upper Right (  492000.000, 6850000.000) (  8d50'54.02"E, 61d46'58.29"N)
+Lower Right (  492000.000, 6790000.000) (  8d51' 3.39"E, 61d14'39.21"N)
+Center      (  462000.000, 6820000.000) (  8d17' 9.19"E, 61d30'42.34"N)
+Band 1 Block=6000x1 Type=Float32, ColorInterp=Gray
+    Computed Min/Max=1.900,2467.800
+
+
+3. Storing the values as 16-bit unsigned integers:
+gdal_translate -scale 0 2470 0 65535 -ot UInt16 -outsize 200 200 -of ENVI jotunheimen.tif jotunheimen.bin
